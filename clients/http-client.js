@@ -1,19 +1,9 @@
 import axios from 'axios';
 
-export default class HttpClient {
-  constructor(bearerToken) {  
-    this.axios = axios.create({
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${bearerToken}`,
-      },
-    })
+export default axios.create({
+  baseURL: 'https://api.themoviedb.org/3',
+  headers: {
+    Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
   }
+});
 
-  async fetcher(url) {
-    return axios.get(url, { headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_KEY}`,
-    }}).then((res) => res.data);
-  }
-}

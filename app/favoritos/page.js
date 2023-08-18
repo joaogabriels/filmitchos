@@ -1,11 +1,16 @@
 'use client';
 
-import { useUser } from "@clerk/nextjs";
+import useSWR from 'swr'
+
+import httpClient from '@/clients/http-client';
+import TmdbClient from '@/libs/tmbd';
 
 export default function Favoritos() {
-  const { isSignedIn, isLoading, user } = useUser()
+  const tmdbApi = new TmdbClient(httpClient);
 
-  console.log(isSignedIn, isLoading, user);
+  const { data, error } = useSWR('/movie/popular', () => tmdbApi.getPopularMovies({ url: '/movie/popular', page: 1 }))
+
+  console.log(data, error);
 
   return (
     <div>
