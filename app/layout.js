@@ -1,8 +1,10 @@
-import './globals.css'
 import { Inter } from 'next/font/google'
+import { ClerkProvider } from '@clerk/nextjs'
 
 import Header from '@/components/Header'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ThemeProvider } from "@/components/ThemeProvider"
+
+import '@/styles/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,9 +18,13 @@ export default function RootLayout({ children }) {
     <ClerkProvider>
       <html lang="pt-BR">
         <body className={inter.className}>
-          <Header />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <div className="container pt-4 pb-4">
+              <Header />
 
-          {children}
+              {children}
+            </div>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

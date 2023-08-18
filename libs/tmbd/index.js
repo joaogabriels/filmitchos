@@ -13,7 +13,7 @@ export default class TmdbClient {
 
     return new Promise((resolve, reject) => { 
       try {
-        const { data } = this.httpClient.get(`${this.baseUrl}${url}`, params);
+        const data = this.httpClient.get(`${this.baseUrl}${url}`, params);
 
         resolve(data);
       } catch (error) {
