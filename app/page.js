@@ -10,10 +10,13 @@ import MovieCard from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
 
 import TmdbClient from '@/libs/tmbd';
+import { Input } from '@/components/ui/input';
 
 export default function Home() {
   const [page, setPage] = useState(1);
   const [favorites, setFavorites] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [title, setTite] = useState('');
   const tmbdApi = useMemo(() => new TmdbClient(httpClient), []);
   const { data, isLoading, mutate } = useSWR('movie/popular', () => tmbdApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
 
@@ -44,7 +47,7 @@ export default function Home() {
       return setFavorites(newFavorites);
     });
   }
-
+  
   const isFavorite = (movie) => {
     return favorites.some((favorite) => favorite.id === movie.id);
   }
@@ -61,9 +64,17 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if(data) {
+      const { data: { results } } = data;
+
+      setMovies(results);
+    }
+  }, [data]);
+
   const skeletons = Array.from({ length: 20 }).map((_, index) => <Skeleton key={index} className="h-96 w-auto" />);
 
-  if (isLoading || ! data ) {
+  if (isLoading || ! data || movies.length === 0 ) {
     return (
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         {skeletons}
@@ -71,10 +82,15 @@ export default function Home() {
     )
   }
 
-  const { data: { results: movies } } = data;
-
   return (
     <>
+      <div className="flex gap-8 mb-6">
+        <Input type="text" placeholder="Filtrar por título" onChange={(event) => setTite(event.target.value)} />
+
+        <Button onClick={() => handleTitleFilter()}>Filtrar</Button>
+      </div>
+
+
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         {movies.map((movie) => (
           <div key={movie.id}>

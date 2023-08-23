@@ -5,7 +5,7 @@ export default class TmdbClient {
     this.httpClient = httpClient;
   }
 
-  async getPopularMovies({ url, page = 1}) {
+  async getPopularMovies({ url, page = 1 }) {
     const params = {
       ...this.defaultParams,
       page,
@@ -22,7 +22,7 @@ export default class TmdbClient {
     });
   }
 
-  async searchMovie({ url, query}) {
+  async searchMovie({ url, query }) {
     const params = {
       ...this.defaultParams,
       query,
