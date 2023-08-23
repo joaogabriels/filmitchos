@@ -13,16 +13,13 @@ import { Button } from "../ui/button"
 
 export default function MovieCard({ movie, isFavorite, setFavorite }) {
   const handleFavorite = () => {
-    setFavorite(movie.id);
+    setFavorite(movie);
   }
 
   const handleFavoriteStyle = () => {
     return isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-500'
   }
 
-  console.log(movie)
-  console.log(isFavorite)
-  
   return (
     <Card className="min-h-[26rem] max-h-[26rem]:">
       <CardHeader>
@@ -39,7 +36,7 @@ export default function MovieCard({ movie, isFavorite, setFavorite }) {
           className="rounded-md"
         />
 
-        <CardDescription className="truncate">{movie.overview}</CardDescription>
+        <CardDescription className="truncate mt-16">{movie.overview}</CardDescription>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between">

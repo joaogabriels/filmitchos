@@ -1,44 +1,57 @@
 'use client';
 
 import useSWR from 'swr'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import httpClient from '@/clients/http-client';
-import TmdbClient from '@/libs/tmbd';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import MovieCard from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
 
+import TmdbClient from '@/libs/tmbd';
+
 export default function Home() {
   const [page, setPage] = useState(1);
   const [favorites, setFavorites] = useState([]);
-  const tmdbApi = new TmdbClient(httpClient);
-  const { data, isLoading, mutate } = useSWR('movie/popular', () => tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
+  const tmbdApi = useMemo(() => new TmdbClient(httpClient), []);
+  const { data, isLoading, mutate } = useSWR('movie/popular', () => tmbdApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
 
   const hanldePageChange = (value) => {
     setPage(value);
   }
 
-  const handleLikeClick = (movieId) => {
-    if(favorites.includes(movieId)) {
-      localStorage.setItem('favorites', JSON.stringify(favorites.filter((id) => id !== movieId)));
+  const handleLikeClick = (movie) => {
+    if(favorites.length === 0) {
+      localStorage.setItem('favorites', JSON.stringify([movie]));
 
-      return setFavorites(favorites.filter((id) => id !== movieId));
+      return setFavorites([movie]);
     }
-  
-    localStorage.setItem('favorites', JSON.stringify([...favorites, movieId]));
 
-    return setFavorites([...favorites, movieId]);
+    favorites.map((favorite) => {
+      if(favorite.id === movie.id) {
+        const newFavorites = favorites.filter((favorite) => favorite.id !== movie.id);
+
+        localStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+        return setFavorites(newFavorites);
+      }
+
+      const newFavorites = [...favorites, movie];
+
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+      return setFavorites(newFavorites);
+    });
   }
 
-  const handleSearch = () => {
-    searchMutate();
+  const isFavorite = (movie) => {
+    return favorites.some((favorite) => favorite.id === movie.id);
   }
 
   useEffect(() => {
-    mutate(tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
-  }, [page]);
+    mutate(tmbdApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
+  }, [mutate, page, tmbdApi]);
 
   useEffect(() => {
     const favorites = localStorage.getItem('favorites');
@@ -65,7 +78,7 @@ export default function Home() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         {movies.map((movie) => (
           <div key={movie.id}>
-            <MovieCard movie={movie} setFavorite={(value) => handleLikeClick(value)} isFavorite={favorites.includes(movie.id)} />
+            <MovieCard movie={movie} setFavorite={(value) => handleLikeClick(value)} isFavorite={isFavorite(movie)} />
           </div>
         ))}
 
