@@ -8,23 +8,49 @@ import TmdbClient from '@/libs/tmbd';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import MovieCard from '@/components/MovieCard';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [favorites, setFavorites] = useState([]);
   const tmdbApi = new TmdbClient(httpClient);
+  const { data, isLoading, mutate } = useSWR('movie/popular', () => tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
 
-  const { data, error, isLoading, mutate } = useSWR('/movie/popular', () => tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page: 1 }));
+  const hanldePageChange = (value) => {
+    setPage(value);
+  }
+
+  const handleLikeClick = (movieId) => {
+    if(favorites.includes(movieId)) {
+      localStorage.setItem('favorites', JSON.stringify(favorites.filter((id) => id !== movieId)));
+
+      return setFavorites(favorites.filter((id) => id !== movieId));
+    }
+  
+    localStorage.setItem('favorites', JSON.stringify([...favorites, movieId]));
+
+    return setFavorites([...favorites, movieId]);
+  }
+
+  const handleSearch = () => {
+    searchMutate();
+  }
+
+  useEffect(() => {
+    mutate(tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page }));
+  }, [page]);
+
+  useEffect(() => {
+    const favorites = localStorage.getItem('favorites');
+
+    if(favorites) {
+      setFavorites(JSON.parse(favorites));
+    }
+  }, []);
 
   const skeletons = Array.from({ length: 20 }).map((_, index) => <Skeleton key={index} className="h-96 w-auto" />);
 
-  useEffect(() => {
-    if(page > 1) {
-      mutate(tmdbApi.getPopularMovies({ url: `/movie/popular?page=${page}`, page: 1 }));
-    } 
-  }, [page]);
-
-  if (isLoading && ! data) {
+  if (isLoading || ! data ) {
     return (
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         {skeletons}
@@ -32,19 +58,23 @@ export default function Home() {
     )
   }
 
-  const { data: {results: movies} } = data;
+  const { data: { results: movies } } = data;
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
-      {movies.map((movie) => (
-        <div key={movie.id}>
-          <MovieCard movie={movie} />
-        </div>
-      ))}
+    <>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
+        {movies.map((movie) => (
+          <div key={movie.id}>
+            <MovieCard movie={movie} setFavorite={(value) => handleLikeClick(value)} isFavorite={favorites.includes(movie.id)} />
+          </div>
+        ))}
 
-      <div className="col-span-full flex justify-center">
-        <button onClick={() => setPage((prevPage) => prevPage + 1)} type='button'>Proxima página</button>
+        <div className="col-span-full flex items-center">
+          <Button variant="outline" onClick={() => hanldePageChange(page - 1)} disabled={page === 1}>Anterior</Button>
+          <span className="mx-4">{page}</span>
+          <Button variant="outline" onClick={() => hanldePageChange(page + 1)}>Próximo</Button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

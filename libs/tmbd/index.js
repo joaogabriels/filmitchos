@@ -21,4 +21,21 @@ export default class TmdbClient {
       }
     });
   }
+
+  async searchMovie({ url, query}) {
+    const params = {
+      ...this.defaultParams,
+      query,
+    };
+
+    return new Promise((resolve, reject) => { 
+      try {
+        const data = this.httpClient.get(`${this.baseUrl}${url}`, params);
+
+        resolve(data);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 }
